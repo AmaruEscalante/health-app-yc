@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useApp } from '../../context/AppContext';
+import { mealAlternatives } from '../../data/nutrition';
+import { Meal } from '../../data/types';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
@@ -22,11 +24,14 @@ const MEAL_TYPE_COLORS: Record<string, string> = {
 };
 
 export function MealPlanScreen() {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const navigation = useNavigation<any>();
 
   const today =
     state.nutrition.dailyLog[state.nutrition.dailyLog.length - 1];
+
+  const [editing, setEditing] = useState(false);
+  const [swappingMealId, setSwappingMealId] = useState<string | null>(null);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -46,13 +51,14 @@ export function MealPlanScreen() {
         <TouchableOpacity
           style={styles.editPlanButton}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          onPress={() => { setEditing(!editing); setSwappingMealId(null); }}
         >
           <Ionicons
-            name="pencil-outline"
+            name={editing ? 'checkmark-outline' : 'pencil-outline'}
             size={16}
             color={colors.accent.primary}
           />
-          <Text style={styles.editPlanText}>Edit plan</Text>
+          <Text style={styles.editPlanText}>{editing ? 'Done' : 'Edit plan'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -79,32 +85,65 @@ export function MealPlanScreen() {
         {/* Meal list */}
         <View style={styles.mealListContainer}>
           {today.meals.map((meal) => (
-            <View key={meal.id} style={styles.mealRow}>
-              <Ionicons
-                name="checkmark-circle"
-                size={24}
-                color={colors.macro.proteins}
-              />
-              <View style={styles.mealInfo}>
-                <Text style={styles.mealTime}>{meal.time}</Text>
-                <Text style={styles.mealName}>{meal.name}</Text>
+            <View key={meal.id}>
+              <View style={styles.mealRow}>
+                {editing ? (
+                  <TouchableOpacity
+                    onPress={() => dispatch({ type: 'REMOVE_MEAL', payload: { mealId: meal.id } })}
+                  >
+                    <Ionicons name="close-circle" size={24} color={colors.semantic.heart} />
+                  </TouchableOpacity>
+                ) : (
+                  <Ionicons name="checkmark-circle" size={24} color={colors.macro.proteins} />
+                )}
+                <View style={styles.mealInfo}>
+                  <Text style={styles.mealTime}>{meal.time}</Text>
+                  <Text style={styles.mealName}>{meal.name}</Text>
+                </View>
+                {editing ? (
+                  <TouchableOpacity
+                    style={styles.swapButton}
+                    onPress={() => setSwappingMealId(swappingMealId === meal.id ? null : meal.id)}
+                  >
+                    <Ionicons name="swap-horizontal" size={16} color={colors.accent.primary} />
+                    <Text style={styles.swapButtonText}>Swap</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.mealCalorieSection}>
+                    <Text style={styles.mealCalories}>
+                      {meal.calories}{' '}
+                      <Text style={styles.mealCalorieUnit}>kcal</Text>
+                    </Text>
+                    <View
+                      style={[
+                        styles.mealTypeDot,
+                        { backgroundColor: MEAL_TYPE_COLORS[meal.mealType] || colors.text.secondary },
+                      ]}
+                    />
+                  </View>
+                )}
               </View>
-              <View style={styles.mealCalorieSection}>
-                <Text style={styles.mealCalories}>
-                  {meal.calories}{' '}
-                  <Text style={styles.mealCalorieUnit}>kcal</Text>
-                </Text>
-                <View
-                  style={[
-                    styles.mealTypeDot,
-                    {
-                      backgroundColor:
-                        MEAL_TYPE_COLORS[meal.mealType] ||
-                        colors.text.secondary,
-                    },
-                  ]}
-                />
-              </View>
+              {editing && swappingMealId === meal.id && (
+                <View style={styles.alternativesContainer}>
+                  {(mealAlternatives[meal.mealType] || []).map((alt) => (
+                    <TouchableOpacity
+                      key={alt.id}
+                      style={styles.alternativeRow}
+                      onPress={() => {
+                        const swapMeal = { ...alt, id: meal.id, date: meal.date, time: meal.time };
+                        dispatch({ type: 'SWAP_MEAL', payload: { oldMealId: meal.id, newMeal: swapMeal } });
+                        setSwappingMealId(null);
+                      }}
+                    >
+                      <View style={styles.alternativeInfo}>
+                        <Text style={styles.alternativeName}>{alt.name}</Text>
+                        <Text style={styles.alternativeCalories}>{alt.calories} kcal</Text>
+                      </View>
+                      <Ionicons name="arrow-forward-circle-outline" size={20} color={colors.accent.primary} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           ))}
         </View>
@@ -228,6 +267,46 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  swapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.card.secondary,
+    borderRadius: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  swapButtonText: {
+    ...typography.subLabel,
+    color: colors.accent.primary,
+    fontWeight: '600',
+  },
+  alternativesContainer: {
+    marginLeft: spacing.xl,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+    gap: spacing.xs,
+  },
+  alternativeRow: {
+    backgroundColor: colors.card.secondary,
+    borderRadius: 12,
+    padding: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  alternativeInfo: {
+    flex: 1,
+  },
+  alternativeName: {
+    ...typography.body,
+    color: colors.text.primary,
+    fontWeight: '500',
+  },
+  alternativeCalories: {
+    ...typography.subLabel,
+    color: colors.text.secondary,
   },
   groceryRow: {
     backgroundColor: colors.card.primary,
