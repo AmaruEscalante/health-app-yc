@@ -19,10 +19,10 @@ const menuItems = [
   { label: 'Personal Info', icon: 'person' as const, screen: 'PersonalInfo', crossTab: false },
   { label: 'Preferences', icon: 'settings' as const, screen: 'Preferences', crossTab: false },
   { label: 'Health Goals', icon: 'trophy' as const, screen: 'HealthGoals', crossTab: false },
-  { label: 'Medical', icon: 'medkit' as const, screen: 'Medical', crossTab: true },
+  { label: 'Medical', icon: 'medkit' as const, screen: 'Medical', crossTab: false },
   { label: 'Sleep Tracker', icon: 'moon' as const, screen: 'SleepTracker', crossTab: true, parentTab: 'HomeTab' },
-  { label: 'Stress & Meditation', icon: 'leaf' as const, screen: 'StressCheckin', crossTab: true },
-  { label: 'Journal', icon: 'book' as const, screen: 'Journal', crossTab: true },
+  { label: 'Stress & Meditation', icon: 'leaf' as const, screen: 'StressCheckin', crossTab: true, parentTab: 'HomeTab' },
+  { label: 'Journal', icon: 'book' as const, screen: 'Journal', crossTab: true, parentTab: 'HomeTab' },
 ];
 
 export function ProfileScreen() {
