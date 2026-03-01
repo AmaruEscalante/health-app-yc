@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { AppState, Meal, VitalReading, Medication, Appointment, SleepLog, StressEntry, JournalEntry } from '../data/types';
+import { AppState, Meal, VitalReading, Medication, Appointment, SleepLog, StressEntry, JournalEntry, CommunityPost } from '../data/types';
 import { mockUser } from '../data/user';
 import { mockWorkouts, mockStepHistory, mockStreaks } from '../data/activity';
 import { mockNutritionHistory } from '../data/nutrition';
 import { mockSleepLogs, mockStressEntries, mockMeditationSessions, mockMeditationStreak, mockJournal } from '../data/wellness';
 import { mockVitals, mockMedications, mockAppointments } from '../data/medical';
+import { mockCommunityPosts } from '../data/community';
 
 const initialState: AppState = {
   user: mockUser,
@@ -29,6 +30,9 @@ const initialState: AppState = {
     medications: mockMedications,
     appointments: mockAppointments,
   },
+  community: {
+    posts: mockCommunityPosts,
+  },
 };
 
 type Action =
@@ -42,7 +46,10 @@ type Action =
   | { type: 'ADD_JOURNAL_ENTRY'; payload: JournalEntry }
   | { type: 'UPDATE_USER'; payload: Partial<AppState['user']> }
   | { type: 'UPDATE_GOALS'; payload: Partial<AppState['user']['goals']> }
-  | { type: 'UPDATE_PREFERENCES'; payload: Partial<AppState['user']['preferences']> };
+  | { type: 'UPDATE_PREFERENCES'; payload: Partial<AppState['user']['preferences']> }
+  | { type: 'ADD_COMMUNITY_POST'; payload: CommunityPost }
+  | { type: 'REMOVE_MEAL'; payload: { mealId: string } }
+  | { type: 'SWAP_MEAL'; payload: { oldMealId: string; newMeal: Meal } };
 
 function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -89,6 +96,48 @@ function appReducer(state: AppState, action: Action): AppState {
       return { ...state, user: { ...state.user, goals: { ...state.user.goals, ...action.payload } } };
     case 'UPDATE_PREFERENCES':
       return { ...state, user: { ...state.user, preferences: { ...state.user.preferences, ...action.payload } } };
+    case 'ADD_COMMUNITY_POST':
+      return {
+        ...state,
+        community: {
+          ...state.community,
+          posts: [action.payload, ...state.community.posts],
+        },
+      };
+    case 'REMOVE_MEAL': {
+      const todayLog = state.nutrition.dailyLog[state.nutrition.dailyLog.length - 1];
+      const removedMeal = todayLog.meals.find(m => m.id === action.payload.mealId);
+      const updatedLog = {
+        ...todayLog,
+        meals: todayLog.meals.filter(m => m.id !== action.payload.mealId),
+        totalCalories: todayLog.totalCalories - (removedMeal?.calories ?? 0),
+      };
+      return {
+        ...state,
+        nutrition: {
+          ...state.nutrition,
+          dailyLog: [...state.nutrition.dailyLog.slice(0, -1), updatedLog],
+        },
+      };
+    }
+    case 'SWAP_MEAL': {
+      const todayLog = state.nutrition.dailyLog[state.nutrition.dailyLog.length - 1];
+      const oldMeal = todayLog.meals.find(m => m.id === action.payload.oldMealId);
+      const updatedLog = {
+        ...todayLog,
+        meals: todayLog.meals.map(m =>
+          m.id === action.payload.oldMealId ? action.payload.newMeal : m
+        ),
+        totalCalories: todayLog.totalCalories - (oldMeal?.calories ?? 0) + action.payload.newMeal.calories,
+      };
+      return {
+        ...state,
+        nutrition: {
+          ...state.nutrition,
+          dailyLog: [...state.nutrition.dailyLog.slice(0, -1), updatedLog],
+        },
+      };
+    }
     default:
       return state;
   }
