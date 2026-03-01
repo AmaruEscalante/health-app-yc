@@ -1,0 +1,87 @@
+# Docker Compose for running the Health & Wellness app on a Linux VM
+# Requirements: Linux host with KVM enabled (check with `ls /dev/kvm`)
+#
+# Usage:
+#   docker compose up -d
+#   Open http://localhost:6080 in your browser to see the Android emulator
+#   The Expo dev server runs at http://expo-server:8081 inside the network
+#
+# To install and launch the app on the emulator:
+#   docker compose exec android bash
+#   adb install /path/to/app.apk
+#   # Or open the Expo Go app in the emulator and enter the dev server URL
+
+services:
+  # Expo development server
+  expo-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=expo-server
+    volumes:
+      - ./src:/app/src:ro
+      - ./App.tsx:/app/App.tsx:ro
+      - ./index.ts:/app/index.ts:ro
+      - ./app.json:/app/app.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Android emulator with noVNC browser access
+  android:
+    image: budtmo/docker-android:emulator_14.0
+    ports:
+      - "6080:6080"    # noVNC web interface
+      - "5554:5554"    # ADB console
+      - "5555:5555"    # ADB connection
+    environment:
+      - EMULATOR_DEVICE=pixel_7
+      - WEB_VNC=true
+      - DATAPARTITION=4g
+      - GPU_MODE=swiftshader_indirect
+    devices:
+      - /dev/kvm
+    depends_on:
+      expo-server:
+        condition: service_healthy
+
+  # One-shot service to install Expo Go and open the app
+  app-launcher:
+    image: budtmo/docker-android:emulator_14.0
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        echo "Waiting for emulator to boot..."
+        adb connect android:5555
+        adb -s android:5555 wait-for-device
+
+        # Wait for boot to complete
+        until adb -s android:5555 shell getprop sys.boot_completed 2>/dev/null | grep -q "1"; do
+          sleep 5
+          echo "Still waiting for boot..."
+        done
+        echo "Emulator booted!"
+
+        # Install Expo Go APK
+        echo "Installing Expo Go..."
+        curl -L -o /tmp/expo-go.apk "https://d1ahtucjixef4r.cloudfront.net/Exponent-2.33.0.apk"
+        adb -s android:5555 install /tmp/expo-go.apk || echo "Expo Go may already be installed"
+
+        # Open Expo Go with the dev server URL
+        sleep 3
+        echo "Launching app via Expo Go..."
+        adb -s android:5555 shell am start -a android.intent.action.VIEW -d "exp://expo-server:8081" host.exp.exponent
+
+        echo "Done! Open http://localhost:6080 to see the emulator"
+    depends_on:
+      - android
+    network_mode: "service:android"
