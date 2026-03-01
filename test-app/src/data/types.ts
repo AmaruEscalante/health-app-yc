@@ -126,6 +126,17 @@ export interface Appointment {
   reason?: string;
 }
 
+export interface CommunityPost {
+  id: string;
+  author: string;
+  avatarColor: string;
+  text: string;
+  timestamp: string;
+  likes: number;
+  comments: number;
+  liked: boolean;
+}
+
 export interface AppState {
   user: UserProfile;
   activity: {
@@ -148,5 +159,8 @@ export interface AppState {
     vitals: VitalReading[];
     medications: Medication[];
     appointments: Appointment[];
+  };
+  community: {
+    posts: CommunityPost[];
   };
 }
