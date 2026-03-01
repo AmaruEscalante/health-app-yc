@@ -28,3 +28,26 @@ function generateNutritionHistory(): DailyNutrition[] {
 }
 
 export const mockNutritionHistory = generateNutritionHistory();
+
+export const mealAlternatives: Record<string, Meal[]> = {
+  Breakfast: [
+    { id: 'alt-b1', name: 'Greek Yogurt Parfait', calories: 280, carbs: 35, proteins: 18, fats: 8, mealType: 'Breakfast', time: '08:00', date: '' },
+    { id: 'alt-b2', name: 'Smoothie Bowl', calories: 350, carbs: 50, proteins: 14, fats: 10, mealType: 'Breakfast', time: '08:00', date: '' },
+    { id: 'alt-b3', name: 'Avocado Toast & Eggs', calories: 420, carbs: 30, proteins: 20, fats: 24, mealType: 'Breakfast', time: '08:00', date: '' },
+  ],
+  Lunch: [
+    { id: 'alt-l1', name: 'Turkey Wrap', calories: 450, carbs: 35, proteins: 32, fats: 18, mealType: 'Lunch', time: '12:30', date: '' },
+    { id: 'alt-l2', name: 'Quinoa Buddha Bowl', calories: 520, carbs: 55, proteins: 22, fats: 20, mealType: 'Lunch', time: '12:30', date: '' },
+    { id: 'alt-l3', name: 'Tuna Poke Bowl', calories: 460, carbs: 40, proteins: 35, fats: 14, mealType: 'Lunch', time: '12:30', date: '' },
+  ],
+  Dinner: [
+    { id: 'alt-d1', name: 'Chicken Stir-Fry', calories: 480, carbs: 35, proteins: 40, fats: 16, mealType: 'Dinner', time: '19:00', date: '' },
+    { id: 'alt-d2', name: 'Shrimp Tacos', calories: 440, carbs: 38, proteins: 30, fats: 18, mealType: 'Dinner', time: '19:00', date: '' },
+    { id: 'alt-d3', name: 'Lean Beef & Sweet Potato', calories: 550, carbs: 42, proteins: 44, fats: 20, mealType: 'Dinner', time: '19:00', date: '' },
+  ],
+  Snack: [
+    { id: 'alt-s1', name: 'Trail Mix', calories: 200, carbs: 18, proteins: 6, fats: 14, mealType: 'Snack', time: '16:00', date: '' },
+    { id: 'alt-s2', name: 'Apple & Peanut Butter', calories: 220, carbs: 25, proteins: 8, fats: 12, mealType: 'Snack', time: '16:00', date: '' },
+    { id: 'alt-s3', name: 'Greek Yogurt & Honey', calories: 160, carbs: 20, proteins: 14, fats: 4, mealType: 'Snack', time: '16:00', date: '' },
+  ],
+};
