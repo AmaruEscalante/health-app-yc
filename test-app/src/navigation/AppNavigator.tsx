@@ -11,6 +11,7 @@ import { SleepTrackerScreen } from '../screens/wellness/SleepTrackerScreen';
 import { StressCheckinScreen } from '../screens/wellness/StressCheckinScreen';
 import { MeditationScreen } from '../screens/wellness/MeditationScreen';
 import { JournalScreen } from '../screens/wellness/JournalScreen';
+import { CommunityFeedScreen } from '../screens/home/CommunityFeedScreen';
 
 // Workout screens
 import { WorkoutOverviewScreen } from '../screens/workout/WorkoutOverviewScreen';
@@ -41,6 +42,7 @@ function HomeStackNavigator() {
   return (
     <HomeStack.Navigator screenOptions={stackScreenOptions}>
       <HomeStack.Screen name="Dashboard" component={DashboardScreen} />
+      <HomeStack.Screen name="CommunityFeed" component={CommunityFeedScreen} />
       <HomeStack.Screen name="SleepTracker" component={SleepTrackerScreen} />
       <HomeStack.Screen name="StressCheckin" component={StressCheckinScreen} />
       <HomeStack.Screen name="Meditation" component={MeditationScreen} />

@@ -7,6 +7,7 @@ export type RootTabParamList = {
 
 export type HomeStackParamList = {
   Dashboard: undefined;
+  CommunityFeed: undefined;
   SleepTracker: undefined;
   StressCheckin: undefined;
   Meditation: undefined;

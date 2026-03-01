@@ -9,6 +9,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { HomeStackParamList } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
 import { MetricCard } from '../../components/MetricCard';
 import { FAB } from '../../components/FAB';
@@ -18,6 +21,7 @@ import { spacing } from '../../theme/spacing';
 
 export function DashboardScreen() {
   const { state } = useApp();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const todayLog = state.nutrition.dailyLog[state.nutrition.dailyLog.length - 1];
 
   return (
@@ -78,7 +82,11 @@ export function DashboardScreen() {
         </View>
 
         {/* Community Card */}
-        <View style={styles.communityCard}>
+        <TouchableOpacity
+          style={styles.communityCard}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('CommunityFeed')}
+        >
           {/* User Row */}
           <View style={styles.communityUserRow}>
             <Image
@@ -138,7 +146,7 @@ export function DashboardScreen() {
               <Ionicons name="bookmark-outline" size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       </ScrollView>
 
       <FAB onPress={() => {}} />
