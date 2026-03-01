@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { TouchableOpacity, StyleSheet, View, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { colors } from '../theme/colors';
@@ -9,9 +9,30 @@ interface FABProps {
 }
 
 export function FAB({ onPress }: FABProps) {
+  const glowOpacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowOpacity, {
+          toValue: 0.8,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowOpacity, {
+          toValue: 0.3,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [glowOpacity]);
+
   return (
     <View style={styles.wrapper}>
-      <View style={styles.glowRing}>
+      <Animated.View style={[styles.glowRing, { opacity: glowOpacity }]}>
         <Svg width={64} height={64}>
           <Circle
             cx={32}
@@ -20,10 +41,9 @@ export function FAB({ onPress }: FABProps) {
             stroke={colors.accent.primary}
             strokeWidth={2.5}
             fill="none"
-            opacity={0.6}
           />
         </Svg>
-      </View>
+      </Animated.View>
       <TouchableOpacity style={styles.button} onPress={onPress} activeOpacity={0.8}>
         <Ionicons name="add" size={28} color={colors.background.primary} />
       </TouchableOpacity>

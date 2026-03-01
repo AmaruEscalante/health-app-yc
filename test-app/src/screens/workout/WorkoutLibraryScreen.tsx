@@ -3,10 +3,10 @@ import {
   View,
   Text,
   FlatList,
-  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: spacing.screenPadding,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   row: {
     justifyContent: 'space-between',
